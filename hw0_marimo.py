@@ -10,34 +10,38 @@
 
 import marimo
 
-__generated_with = "0.19.2"
+__generated_with = "0.19.11"
 app = marimo.App()
 
 with app.setup(hide_code=True):
+    import subprocess
+
     import marimo as mo
 
     import pytest
-    import subprocess
 
     # Run this cell to download and install the necessary modules for the homework
-    subprocess.call(
-        [
-            "wget",
-            "-nc",
-            "https://raw.githubusercontent.com/modernaicourse/hw0/refs/heads/main/hw0_tests.py",
-        ]
-    )
+    # subprocess.call(
+    #     [
+    #         "wget",
+    #         "-nc",
+    #         "https://raw.githubusercontent.com/modernaicourse/hw0/refs/heads/main/hw0_tests.py",
+    #     ]
+    # )
 
-    import os
-    import mugrade
     import math
+    import os
+
+
+    import mugrade
     from hw0_tests import (
         submit_add,
-        submit_primes,
         submit_poly_add,
-        submit_poly_mul,
         submit_poly_derivative,
+        submit_poly_mul,
+        submit_primes,
     )
+
 
 
 @app.cell(hide_code=True)
@@ -91,7 +95,6 @@ def _():
 @app.cell
 def _():
     os.environ["MUGRADE_HW"] = "Homework 0"
-    os.environ["MUGRADE_KEY"] = ""
     return
 
 
@@ -122,7 +125,7 @@ def add(x, y):
         integer or float, addition of x and y
     """
     ### BEGIN YOUR CODE
-    pass
+    return x + y
     ### END YOUR CODE
 
 
@@ -197,7 +200,8 @@ def _():
     submitted _all_ the assignments for the course, you should additionally
     upload the notebook itself: download the notebook from molab, and upload it
     to mugrade using the "Upload Code" link at the bottom of the page
-    assignment page.""")
+    assignment page.
+    """)
     return
 
 
@@ -255,7 +259,15 @@ def primes(n):
         list of primes up to (not including) n
     """
     ### BEGIN YOUR CODE
-    pass
+    if n < 2:
+        return []
+    sieve = [True] * n
+    sieve[0] = sieve[1] = False
+    for i in range(2, int(math.sqrt(n)) + 1):
+        if sieve[i]:
+            for j in range(i * i, n, i):
+                sieve[j] = False
+    return [i for i in range(n) if sieve[i]]
     ### END YOUR CODE
 
 
@@ -396,7 +408,13 @@ def poly_add(p1, p2):
         Polynomial corresponding to the addition of p1 and p2
     """
     ### BEGIN YOUR CODE
-    pass
+    max_degree = max(p1.degree(), p2.degree())
+    new_coefficients = [0] * (max_degree + 1)
+    for i in range(max_degree + 1):
+        coeff1 = p1.coefficients[i] if i <= p1.degree() else 0
+        coeff2 = p2.coefficients[i] if i <= p2.degree() else 0
+        new_coefficients[i] = coeff1 + coeff2
+    return Polynomial(new_coefficients)
     ### END YOUR CODE
 
 
@@ -463,7 +481,12 @@ def poly_mul(p1, p2):
         Polynomial corresponding to the multiplication of p1 and p2
     """
     ### BEGIN YOUR CODE
-    pass
+    new_degree = p1.degree() + p2.degree()
+    new_coefficients = [0] * (new_degree + 1)
+    for i in range(p1.degree() + 1):
+        for j in range(p2.degree() + 1):
+            new_coefficients[i + j] += p1.coefficients[i] * p2.coefficients[j]
+    return Polynomial(new_coefficients)
     ### END YOUR CODE
 
 
@@ -528,7 +551,12 @@ def poly_derivative(p):
         Polynomial corresponding to the derivative of p with respect to x
     """
     ### BEGIN YOUR CODE
-    pass
+    if p.degree() == 0:
+        return Polynomial([0])
+    new_coefficients = [0] * p.degree()
+    for i in range(1, p.degree() + 1):
+        new_coefficients[i - 1] = p.coefficients[i] * i
+    return Polynomial(new_coefficients)
     ### END YOUR CODE
 
 
@@ -550,9 +578,11 @@ def _():
 
 @app.cell
 def _(submit_poly_derivative_button):
-    mugrade.submit_tests(
-        poly_derivative
-    ) if submit_poly_derivative_button.value else None
+    (
+        mugrade.submit_tests(poly_derivative)
+        if submit_poly_derivative_button.value
+        else None
+    )
     return
 
 
